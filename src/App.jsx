@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Instruction from './Instruction';
 
 const App = () => {
   const [board, setBoard] = useState(Array(8).fill().map(() => Array(8).fill(null)));
@@ -6,6 +7,7 @@ const App = () => {
   const [gameOver, setGameOver] = useState(false);
   const [scores, setScores] = useState({ black: 2, white: 2 });
   const [initialized, setInitialized] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false); // State for modal visibility
 
   // Initialize board
   useEffect(() => {
@@ -145,85 +147,70 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
-      <div className="mb-4 text-2xl font-bold text-gray-800">
-        {gameOver ? 'Game Over! ' : `Current Player: ${currentPlayer}`}
-        {gameOver && `Winner: ${scores.black > scores.white ? 'Black' : scores.white > scores.black ? 'White' : 'Draw'}`}
+      <div className="mb-4 text-3xl font-bold text-gray-800 font-serif text-center">
+        {gameOver ? '🎮 Game Over! ' : `🕹️ Current Player: ${currentPlayer}`}
+        {gameOver && `🏆 Winner: ${scores.black > scores.white ? 'Black' : scores.white > scores.black ? 'White' : 'Draw'}`}
       </div>
-      
-      <div className="mb-4 flex gap-4">
-        <div className="bg-black text-white p-2 rounded-lg shadow-md min-w-[100px] text-center">
-          Black: {scores.black}
+
+      <div className="mb-4 flex flex-row gap-4">
+        <div className="bg-gray-900 text-white px-4 py-2 rounded-xl shadow-lg min-w-[100px] text-center border-2 border-gray-800">
+          <div className="text-sm text-gray-300">Black</div>
+          <div className="text-2xl font-bold">{scores.black}</div>
         </div>
-        <div className="bg-white text-black p-2 rounded-lg border-2 border-gray-300 shadow-md min-w-[100px] text-center">
-          White: {scores.white}
+        <div className="bg-white text-gray-900 px-4 py-2 rounded-xl shadow-lg min-w-[100px] text-center border-2 border-gray-200">
+          <div className="text-sm text-gray-500">White</div>
+          <div className="text-2xl font-bold">{scores.white}</div>
         </div>
       </div>
 
-      <div className="relative bg-amber-900 p-6 rounded-xl shadow-2xl">
-        {/* Column labels */}
-        <div className="absolute -top-6 left-0 right-0 flex justify-between px-4 text-gray-600 font-mono">
-          {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map((label, i) => (
-            <span key={label} className="w-12 text-center">{label}</span>
-          ))}
-        </div>
-        
-        {/* Row labels */}
-        <div className="absolute -left-6 top-0 bottom-0 flex flex-col justify-between py-4 text-gray-600 font-mono">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
-            <span key={num} className="h-12 flex items-center justify-center">{num}</span>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-8 gap-1 bg-amber-800 p-1 rounded-lg">
+      <div className="relative bg-green-900 p-2 sm:p-4 rounded-2xl shadow-2xl mx-4 sm:mx-8">
+        {/* Game board */}
+        <div className="grid grid-cols-8 gap-1 bg-green-800 p-2 rounded-xl">
           {board.map((row, i) => (
             row.map((cell, j) => (
               <div
                 key={`${i}-${j}`}
                 className={`
-                  w-12 h-12 flex items-center justify-center
-                  bg-amber-700/80 hover:bg-amber-700/90 transition-colors
-                  ${isValidMove(board, currentPlayer, i, j) ? 'cursor-pointer' : 'cursor-default'}
-                  ${(i + j) % 2 === 0 ? 'bg-amber-700/70' : 'bg-amber-700/90'}
+                  w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center
+                  transition-all duration-200
+                  ${isValidMove(board, currentPlayer, i, j) 
+                    ? 'cursor-pointer hover:bg-green-700/90' 
+                    : 'cursor-default'}
+                  ${(i + j) % 2 === 0 ? 'bg-green-700/80' : 'bg-green-700/60'}
                   relative
                 `}
                 onClick={() => handleClick(i, j)}
               >
                 {cell && (
-                  <div className={`
-                    w-10 h-10 rounded-full shadow-lg
-                    ${cell === 'black' ? 
-                      'bg-gray-900 shadow-gray-800/50' : 
-                      'bg-gray-50 shadow-gray-300/50'}
-                    transform transition-all duration-300
-                    hover:scale-105
-                  `} />
+                  <div className={`w-8 h-8 rounded-full ${cell === 'black' ? 'bg-black' : 'bg-white'}`}></div>
                 )}
                 {isValidMove(board, currentPlayer, i, j) && !cell && (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-3 h-3 bg-gray-400/30 rounded-full animate-pulse" />
+                    <div className="w-8 h-8 bg-gray-100/30 rounded-full animate-pulse" />
                   </div>
                 )}
               </div>
             ))
           ))}
         </div>
-
-        {/* Bottom column labels */}
-        <div className="absolute -bottom-6 left-0 right-0 flex justify-between px-4 text-gray-600 font-mono">
-          {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map((label, i) => (
-            <span key={label} className="w-12 text-center">{label}</span>
-          ))}
-        </div>
       </div>
 
-      <button
-        onClick={resetGame}
-        className="mt-6 px-6 py-2 bg-blue-500 text-white rounded-lg 
-                 shadow-md hover:bg-blue-600 transition-colors
-                 hover:shadow-lg active:scale-95"
-      >
-        Reset Game
-      </button>
+      <div className="mt-4 flex flex-col sm:flex-row gap-4">
+        <button
+          onClick={resetGame}
+          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition w-full sm:w-auto"
+        >
+          Reset Game
+        </button>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition w-full sm:w-auto"
+        >
+          Game Instructions
+        </button>
+      </div>
+
+      <Instruction isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 };
